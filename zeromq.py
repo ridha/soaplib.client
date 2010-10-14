@@ -23,23 +23,26 @@ import zmq
 
 from soaplib.client import Service
 from soaplib.client import RemoteProcedureBase
+from soaplib.client import Base
 
 context = zmq.Context()
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
-        out_str = self.get_out_string(args, kwargs)
+        out_object = self.get_out_object(args, kwargs)
+        out_string = self.get_out_string(out_object)
 
+        print self.url
         socket = context.socket(zmq.REQ)
-        socket.connect (self.url)
-        socket.send (out_str)
+        socket.connect(self.url)
+        socket.send(out_string)
     
         in_str = socket.recv()
 
         return self.get_in_object(in_str)
 
-class Client(object):
+class Client(Base):
     def __init__(self, url, app):
-        super(Client, self).__init__(url, app)
+        Base.__init__(self, url, app)
 
         self.service = Service(_RemoteProcedure, url, app)
